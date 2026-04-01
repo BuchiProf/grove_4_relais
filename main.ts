@@ -1,9 +1,14 @@
 /**
- * Extension pour le module Grove 4-Relais (I2C)
+ * Extension Grove 4-Channel Relay V1.0
+ * Basé sur la bibliothèque officielle Seeed Studio
  */
 //% color=#03a9f4 icon="\uf0e7" block="Grove 4-Relais"
 namespace Grove4Relais {
-    const ADDR = 0x11; // Adresse I2C par défaut du module
+    const ADDR = 0x11;
+    const CMD_CHANNEL_CTRL = 0x10;
+
+    // On garde l'état en mémoire comme dans la librairie C++
+    let channel_state = 0;
 
     export enum RelayState {
         //% block="allumé"
@@ -14,46 +19,44 @@ namespace Grove4Relais {
 
     export enum RelayNumber {
         //% block="1"
-        Relay1 = 1,
+        R1 = 1,
         //% block="2"
-        Relay2 = 2,
+        R2 = 2,
         //% block="3"
-        Relay3 = 3,
+        R3 = 3,
         //% block="4"
-        Relay4 = 4
+        R4 = 4
     }
 
     /**
-     * Contrôle un relais spécifique du module.
-     * @param relay le numéro du relais (1-4)
-     * @param state l'état souhaité (ON ou OFF)
+     * Change l'état d'un seul relais sans affecter les autres.
      */
-    //% block="mettre le relais %relay à %state"
-    //% relay.defl=RelayNumber.Relay1
-    export function controlRelay(relay: RelayNumber, state: RelayState): void {
-        let buffer = pins.createBuffer(2);
+    //% block="mettre le relais %channel à %state"
+    //% channel.min=1 channel.max=4
+    export function controlRelay(channel: RelayNumber, state: RelayState): void {
+        if (state == RelayState.ON) {
+            // Equivalent Arduino : channel_state |= (1 << (channel - 1))
+            channel_state |= (1 << (channel - 1));
+        } else {
+            // Equivalent Arduino : channel_state &= ~(1 << (channel - 1))
+            channel_state &= ~(1 << (channel - 1));
+        }
 
-        // La commande I2C pour le Seeed 4-Relay :
-        // Registre correspondant au relais (0x01 à 0x04)
-        // Valeur (0xFF pour ON, 0x00 pour OFF)
-
-        buffer[0] = relay;
-        buffer[1] = (state == RelayState.ON) ? 0xFF : 0x00;
-
-        pins.i2cWriteBuffer(ADDR, buffer);
+        let buf = pins.createBuffer(2);
+        buf[0] = CMD_CHANNEL_CTRL;
+        buf[1] = channel_state;
+        pins.i2cWriteBuffer(ADDR, buf);
     }
 
     /**
-     * Contrôle tous les relais en même temps via un masque binaire.
-     * @param mask un nombre entre 0 et 15 (ex: 15 pour tout allumer)
+     * Éteint tous les relais immédiatement.
      */
-    //% block="tous les relais état (masque) %mask"
-    //% mask.min=0 mask.max=15
-    //% advanced=true
-    export function allRelays(mask: number): void {
-        let buffer = pins.createBuffer(2);
-        buffer[0] = 0x00; // Registre de contrôle global
-        buffer[1] = mask;
-        pins.i2cWriteBuffer(ADDR, buffer);
+    //% block="éteindre tous les relais"
+    export function allOff(): void {
+        channel_state = 0;
+        let buf = pins.createBuffer(2);
+        buf[0] = CMD_CHANNEL_CTRL;
+        buf[1] = 0;
+        pins.i2cWriteBuffer(ADDR, buf);
     }
 }
