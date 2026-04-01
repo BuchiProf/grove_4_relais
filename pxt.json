@@ -1,14 +1,11 @@
 {
     "name": "grove_4_relais",
     "version": "0.0.1",
-    "description": "",
+    "description": "Extension pour le module 4-relais Grove",
     "dependencies": {
-        "core": "*",
-        "radio": "*",
-        "microphone": "*"
+        "core": "*"
     },
     "files": [
-        "README.md",
         "main.ts"
     ],
     "testFiles": [
@@ -22,5 +19,5 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "tsmain"
+    "preferredEditor": "tsprj"
 }
