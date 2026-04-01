@@ -4,11 +4,22 @@
  */
 //% color=#03a9f4 icon="\uf0e7" block="Grove 4-Relais"
 namespace Grove4Relais {
-    const ADDR = 0x11;
+    
     const CMD_CHANNEL_CTRL = 0x10;
 
-    // On garde l'état en mémoire comme dans la librairie C++
+    // On crée une variable pour l'adresse, par défaut 0x11
+    let _moduleAddr = 0x11;
     let channel_state = 0;
+
+    /**
+         * Définit l'adresse I2C du module (0x11 ou 0x12).
+         * @param addr l'adresse I2C (ex: 17 pour 0x11, 18 pour 0x12)
+         */
+    //% block="utiliser le module à l'adresse %addr"
+    //% addr.defl=0x11
+    export function setAddress(addr: number): void {
+        _moduleAddr = addr;
+    }
 
     export enum RelayState {
         //% block="allumé"
@@ -29,23 +40,22 @@ namespace Grove4Relais {
     }
 
     /**
-     * Change l'état d'un seul relais sans affecter les autres.
+     * Contrôle un relais spécifique.
      */
     //% block="mettre le relais %channel à %state"
-    //% channel.min=1 channel.max=4
     export function controlRelay(channel: RelayNumber, state: RelayState): void {
         if (state == RelayState.ON) {
-            // Equivalent Arduino : channel_state |= (1 << (channel - 1))
             channel_state |= (1 << (channel - 1));
         } else {
-            // Equivalent Arduino : channel_state &= ~(1 << (channel - 1))
             channel_state &= ~(1 << (channel - 1));
         }
 
         let buf = pins.createBuffer(2);
         buf[0] = CMD_CHANNEL_CTRL;
         buf[1] = channel_state;
-        pins.i2cWriteBuffer(ADDR, buf);
+
+        // On utilise la variable _moduleAddr au lieu de la constante ADDR
+        pins.i2cWriteBuffer(_moduleAddr, buf);
     }
 
     /**
@@ -57,6 +67,6 @@ namespace Grove4Relais {
         let buf = pins.createBuffer(2);
         buf[0] = CMD_CHANNEL_CTRL;
         buf[1] = 0;
-        pins.i2cWriteBuffer(ADDR, buf);
+        pins.i2cWriteBuffer(_moduleAddr, buf);
     }
 }
