@@ -1,7 +1,7 @@
 {
     "name": "grove_4_relais",
     "version": "0.0.5",
-    "description": "Extension pour le module 4-relais Grove",
+    "description": "Extension pour le module 4-relais Grove par ProfBuchi",
     "dependencies": {
         "core": "*"
     },
